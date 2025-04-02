@@ -1,11 +1,12 @@
 import React from 'react'
+import DashboardLayout from '../components/Dashboard/DashboardLayout'
+import ProjectList from '../components/Dashboard/ProjectList'
 
 const DashboardPage = () => {
   return (
-    <div className="container mt-5">
-      <h2>Welcome to the Dashboard 🎉</h2>
-      <p>You are now logged in!</p>
-    </div>
+    <DashboardLayout>
+      <ProjectList />
+    </DashboardLayout>
   )
 }
 
