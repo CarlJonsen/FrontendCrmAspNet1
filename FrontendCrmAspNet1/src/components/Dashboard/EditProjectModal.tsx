@@ -1,30 +1,33 @@
 import React, { useEffect, useState } from "react";
+import { Project } from "../../types/Project";
 import { fetchDropdownData } from "../../services/fetchDropdownData";
-import { createProject } from "../../services/createProject";
 import FormInput from "./shared/FormInput";
-import FormSelect from "./shared/FormSelect";
 import FormTextarea from "./shared/FormTextArea";
+import FormSelect from "./shared/FormSelect";
+import { updateProject } from "../../services/updateProject";
+// import { updateProject } from "../../services/updateProject"; // 👈 om du har detta sen
 
-interface AddProjectModalProps {
-  onClose: () => void;
+interface Props {
+  project: Project;
   isOpen: boolean;
-  onProjectAdded: () => void;
+  onClose: () => void;
+  onProjectUpdated: () => void;
 }
-
 interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-}
+    id: number;
+    firstName: string;
+    lastName: string;
+  }
+  
+  interface Client {
+    id: number;
+    clientName: string;
+  }
 
-interface Client {
-  id: number;
-  clientName: string;
-}
-
-const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalProps) => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
+const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props) => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [clients, setClients] = useState<Client[]>([]);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [formData, setFormData] = useState({
     projectName: "",
@@ -36,6 +39,22 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
     projectOwnerId: 0,
     clientId: 0,
   });
+
+  useEffect(() => {
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toISOString().split("T")[0];
+      };
+    setFormData({
+      projectName: project.projectName,
+      description: project.description || "",
+      imageUrl: project.imageUrl || "",
+      startDate: formatDate(project.startDate),
+      endDate: formatDate(project.endDate),
+      budget: project.budget,
+      projectOwnerId: project.projectOwnerId,
+      clientId: project.clientId,
+    });
+  }, [project]);
 
   useEffect(() => {
     const loadDropdowns = async () => {
@@ -55,7 +74,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: ["budget", "clientId", "projectOwnerId"].includes(name)
@@ -66,25 +84,30 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.projectName) newErrors.projectName = "Project name is required.";
+    if (!formData.description) newErrors.description = "Description is required.";
+    if (!formData.imageUrl) newErrors.imageUrl = "Image URL is required.";
+    if (!formData.startDate) newErrors.startDate = "Start date is required.";
+    if (!formData.endDate) newErrors.endDate = "End date is required.";
+    if (!formData.budget || formData.budget <= 0) newErrors.budget = "Budget must be greater than 0.";
+    if (!formData.clientId) newErrors.clientId = "Client is required.";
+    if (!formData.projectOwnerId) newErrors.projectOwnerId = "Project owner is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+    }
 
     try {
-      await createProject(formData);
-      alert("Projektet skapades!");
-      setFormData({
-        projectName: "",
-        description: "",
-        imageUrl: "",
-        startDate: "",
-        endDate: "",
-        budget: 0,
-        projectOwnerId: 0,
-        clientId: 0,
-      });
-      onProjectAdded();
-      onClose();
+        await updateProject(project.id, formData);
+        alert("Projektet uppdaterades!");
+        onProjectUpdated();
+        onClose();
     } catch (err) {
-      console.error("Något gick fel vid skapandet av projektet", err);
-      alert("Fel vid skapande av projekt");
+        console.error("Något gick fel:", err);
+        alert("Kunde inte uppdatera projektet.");
     }
   };
 
@@ -110,7 +133,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
           &times;
         </button>
 
-        <h3 style={{ marginBottom: "20px" }}>Add Project</h3>
+        <h3 style={{ marginBottom: "20px" }}>Edit Project</h3>
 
         <form onSubmit={handleSubmit}>
           <FormInput
@@ -118,6 +141,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
             name="projectName"
             value={formData.projectName}
             onChange={handleChange}
+            error={errors.projectName}
           />
 
           <FormTextarea
@@ -125,6 +149,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
             name="description"
             value={formData.description}
             onChange={handleChange}
+            error={errors.description}
           />
 
           <FormInput
@@ -132,6 +157,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleChange}
+            error={errors.imageUrl}
           />
 
           <FormSelect
@@ -144,6 +170,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
               label: client.clientName
             }))}
             placeholder="Select Client"
+            error={errors.clientId}
           />
 
           <FormSelect
@@ -156,6 +183,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
               label: `${user.firstName} ${user.lastName}`
             }))}
             placeholder="Select Owner"
+            error={errors.projectOwnerId}
           />
 
           <div className="d-flex gap-3">
@@ -165,6 +193,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
               type="date"
               value={formData.startDate}
               onChange={handleChange}
+              error={errors.startDate}
             />
             <FormInput
               label="End Date"
@@ -172,6 +201,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
               type="date"
               value={formData.endDate}
               onChange={handleChange}
+              error={errors.endDate}
             />
           </div>
 
@@ -181,10 +211,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
             type="number"
             value={formData.budget}
             onChange={handleChange}
+            error={errors.budget}
           />
 
           <button type="submit" className="btn btn-primary w-100 mt-3">
-            Create
+            Save Changes
           </button>
         </form>
       </div>
@@ -192,4 +223,5 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
   );
 };
 
-export default AddProjectModal;
+export default EditProjectModal;
+

@@ -1,43 +1,19 @@
 import React, { useEffect, useState } from "react";
 import ProjectCard from "./ProjectCard";
 import apiClient from "../../services/apiClient";
+import { Project } from "../../types/Project";
 
-interface Project {
-    id: number;
-    projectName: string;
-    description: string;
-    imageUrl: string;
-    startDate: string;
-    endDate: string;
-    budget: number;
-    clientName: string;
-    projectOwnerName: string;
-    isCompleted: boolean;
-  }
   interface ProjectListProps {
     refreshTrigger: number;
+    onProjectUpdated: () => void;
   }
 
-const ProjectList = ({ refreshTrigger }: ProjectListProps) => {
+const ProjectList = ({ refreshTrigger, onProjectUpdated }: ProjectListProps) => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "completed">("all");
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-          try {
-            const response = await apiClient.get("/projects");
-            setProjects(response.data); // 👈 justera om din respons ligger i ett objekt
-          } catch{
-            setError("Kunde inte hämta projekt från servern.");
-          } finally {
-            setLoading(false);
-          }
-        };
-      
-        fetchProjects();
-      }, []);
 
       useEffect(() => {
         const fetchProjects = async () => {
@@ -108,16 +84,12 @@ const ProjectList = ({ refreshTrigger }: ProjectListProps) => {
             }}
           >
             {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                projectName={project.projectName}
-                clientName={project.clientName}
-                description={project.description}
-                endDate={project.endDate}
-                isCompleted={project.isCompleted}
-                imageUrl={project.imageUrl}
-              />
-            ))}
+              <ProjectCard 
+              key={project.id} 
+              project={project} 
+              onProjectUpdated={onProjectUpdated} 
+              onProjectDeleted={onProjectUpdated}
+              />))}
           </div>
         </div>
       );
