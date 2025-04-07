@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { FaEllipsisV } from "react-icons/fa";
+import { FaEllipsisH } from "react-icons/fa";
 
 interface Props {
   onEdit: () => void;
@@ -36,7 +36,7 @@ const ProjectCardMenu = ({ onEdit, onDelete, }: Props) => {
         }}
         onClick={() => setShowMenu(!showMenu)}
       >
-        <FaEllipsisV />
+        <FaEllipsisH style={{ color: "#637085", fontSize: "18px" }} />
       </button>
 
       {showMenu && (

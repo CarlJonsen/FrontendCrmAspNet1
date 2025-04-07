@@ -41,46 +41,55 @@ const ProjectList = ({ refreshTrigger, onProjectUpdated }: ProjectListProps) => 
       
           {/* Error */}
           {error && <p style={{ color: "red" }}>{error}</p>}
-      
+          <h3 style={{ fontSize: "32px", fontWeight: 700, marginBottom: "30px", color: "#1A1926",}}>
+            Projects
+          </h3>
           {/* Filter Buttons */}
-          <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+          
+          <div style={{borderBottom: "1px solid #E3E5E8", marginBottom: "16px"}}>
+          <div style={{ display: "flex", gap: "40px" }}>
             <button
               onClick={() => setFilter("all")}
               style={{
                 border: "none",
-                backgroundColor: filter === "all" ? "#6c63ff" : "#eee",
-                color: filter === "all" ? "#fff" : "#333",
-                padding: "12px 24px",
-                fontWeight: 600,
-                borderRadius: "12px",
+                background: "none",
+                color: filter === "all" ? "#2D99FF" : "#637085",
+                fontWeight: filter === "all" ? 800 : 700,
+                fontSize: "14px",
+                borderBottom: filter === "all" ? "2px solid #2D99FF" : "none",
+                paddingBottom: "6px",
                 cursor: "pointer",
               }}
             >
-              All
+              ALL [{projects.length}]
             </button>
-      
+
             <button
               onClick={() => setFilter("completed")}
               style={{
                 border: "none",
-                backgroundColor: filter === "completed" ? "#6c63ff" : "#eee",
-                color: filter === "completed" ? "#fff" : "#333",
-                padding: "12px 24px",
-                fontWeight: 600,
-                borderRadius: "12px",
+                background: "none",
+                color: filter === "completed" ? "#2D99FF" : "#637085",
+                fontWeight: filter === "completed" ? 800 : 700,
+                fontSize: "14px",
+                borderBottom: filter === "completed" ? "2px solid #2D99FF" : "none",
+                paddingBottom: "6px",
                 cursor: "pointer",
               }}
             >
-              Completed
+              COMPLETED [{projects.filter(p => p.isCompleted).length}]
             </button>
           </div>
+          </div>
+
       
           {/* Grid of Project Cards */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: "20px"
+              gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))",
+              gap: "30px",
+              justifyContent: "center",
             }}
           >
             {filteredProjects.map((project) => (

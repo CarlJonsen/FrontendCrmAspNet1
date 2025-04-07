@@ -5,7 +5,7 @@ import FormInput from "./shared/FormInput";
 import FormTextarea from "./shared/FormTextArea";
 import FormSelect from "./shared/FormSelect";
 import { updateProject } from "../../services/updateProject";
-// import { updateProject } from "../../services/updateProject"; // 👈 om du har detta sen
+import { uploadImage } from "../../services/uploadImage";
 
 interface Props {
   project: Project;
@@ -13,21 +13,22 @@ interface Props {
   onClose: () => void;
   onProjectUpdated: () => void;
 }
+
 interface User {
-    id: number;
-    firstName: string;
-    lastName: string;
-  }
-  
-  interface Client {
-    id: number;
-    clientName: string;
-  }
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+interface Client {
+  id: number;
+  clientName: string;
+}
 
 const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props) => {
-    const [users, setUsers] = useState<User[]>([]);
-    const [clients, setClients] = useState<Client[]>([]);
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [users, setUsers] = useState<User[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [formData, setFormData] = useState({
     projectName: "",
@@ -41,9 +42,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
   });
 
   useEffect(() => {
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toISOString().split("T")[0];
-      };
+    const formatDate = (dateStr: string) => new Date(dateStr).toISOString().split("T")[0];
     setFormData({
       projectName: project.projectName,
       description: project.description || "",
@@ -66,7 +65,6 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
         console.error("Kunde inte hämta användare eller klienter:", err);
       }
     };
-
     loadDropdowns();
   }, []);
 
@@ -80,6 +78,19 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
         ? parseInt(value)
         : value,
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const imageUrl = await uploadImage(file);
+      setFormData((prev) => ({ ...prev, imageUrl }));
+    } catch (err) {
+      console.error("Fel vid bilduppladdning:", err);
+      alert("Kunde inte ladda upp bilden.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,18 +107,18 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
     if (!formData.projectOwnerId) newErrors.projectOwnerId = "Project owner is required.";
 
     if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
+      setErrors(newErrors);
+      return;
     }
 
     try {
-        await updateProject(project.id, formData);
-        alert("Projektet uppdaterades!");
-        onProjectUpdated();
-        onClose();
+      await updateProject(project.id, formData);
+      alert("Projektet uppdaterades!");
+      onProjectUpdated();
+      onClose();
     } catch (err) {
-        console.error("Något gick fel:", err);
-        alert("Kunde inte uppdatera projektet.");
+      console.error("Något gick fel:", err);
+      alert("Kunde inte uppdatera projektet.");
     }
   };
 
@@ -151,6 +162,23 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
             onChange={handleChange}
             error={errors.description}
           />
+
+          <div className="mb-3">
+            <label>Upload New Image</label>
+            <input
+              type="file"
+              className="form-control"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+            {formData.imageUrl && (
+              <img
+                src={formData.imageUrl}
+                alt="Preview"
+                style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "8px", marginTop: "10px" }}
+              />
+            )}
+          </div>
 
           <FormInput
             label="Image URL"
@@ -224,4 +252,3 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
 };
 
 export default EditProjectModal;
-

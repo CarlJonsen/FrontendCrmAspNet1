@@ -4,6 +4,7 @@ import { createProject } from "../../services/createProject";
 import FormInput from "./shared/FormInput";
 import FormSelect from "./shared/FormSelect";
 import FormTextarea from "./shared/FormTextArea";
+import { uploadImage } from "../../services/uploadImage";
 
 interface AddProjectModalProps {
   onClose: () => void;
@@ -25,6 +26,7 @@ interface Client {
 const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     projectName: "",
@@ -51,6 +53,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
     loadDropdowns();
   }, []);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImageFile(file); // ⬅️ vi laddar inte upp direkt längre
+    }
+  }
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -63,13 +72,27 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
         : value,
     }));
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     try {
-      await createProject(formData);
+      let imageUrl = formData.imageUrl;
+
+      if (selectedImageFile) {
+        imageUrl = await uploadImage(selectedImageFile);
+      }
+  
+      const projectData = {
+        ...formData,
+        imageUrl: imageUrl,
+      };
+  
+      console.log("Skickar till backend:", JSON.stringify(projectData, null, 2));
+  
+      await createProject(projectData);
       alert("Projektet skapades!");
+  
       setFormData({
         projectName: "",
         description: "",
@@ -80,6 +103,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
         projectOwnerId: 0,
         clientId: 0,
       });
+  
+      setSelectedImageFile(null); // Glöm inte detta om du vill nollställa bildvalet
       onProjectAdded();
       onClose();
     } catch (err) {
@@ -126,7 +151,15 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
             value={formData.description}
             onChange={handleChange}
           />
-
+          <div className="mb-3">
+            <label>Upload Image</label>
+            <input
+              type="file"
+              className="form-control"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+          </div>
           <FormInput
             label="Image URL"
             name="imageUrl"

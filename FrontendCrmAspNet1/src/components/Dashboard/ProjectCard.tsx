@@ -55,29 +55,49 @@ const ProjectCard = ({ project, onProjectUpdated, onProjectDeleted}: {
   
   return (
     <div
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "16px",
-        padding: "20px",
-        boxShadow: "0px 4px 12px rgba(0,0,0,0.05)",
-        width: "300px",
-        minHeight: "180px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        position: "relative",
-        opacity: project.isCompleted ? 0.7 : 1
-      }}>
+        style={{
+          position: "relative",
+          backgroundColor: "#fff",
+          borderRadius: "16px",
+          padding: "20px",
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)",
+          width: "100%",
+          minHeight: "272px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          transition: "transform 0.2s ease",
+          cursor: "pointer",
+        }}
+      >
       <ProjectCardMenu
         onEdit={() => setShowEditModal(true)}
-        onDelete={handleDelete}
-        
-       />
+        onDelete={handleDelete}/>
+
       <div>
-        {project.imageUrl && (<div style={{ marginBottom: "12px" }}><img src={project.imageUrl} alt="Project" style={{width: "100%",height: "140px",objectFit: "cover",borderRadius: "12px"}}/></div>)}
-        <h5 style={{ marginBottom: "5px" }}>{project.projectName}</h5>
-        <p style={{ fontSize: "14px", color: "#888", marginBottom: "10px" }}>{project.clientName}</p>
-        <p style={{ fontSize: "14px", color: "#444" }}>{project. description}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+          {project.imageUrl && (
+            <img
+              src={project.imageUrl}
+              alt="Project"
+              style={{
+                width: "56px",
+                height: "56px",
+                objectFit: "cover",
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <div>
+            <h5 style={{ margin: 0, fontSize: "22px", fontWeight: 600, color: "#1A1926" }}>
+              {project.projectName}
+            </h5>
+            <p style={{ margin: 0, fontSize: "15px", color: "#637085" }}>
+              {project.clientName}
+            </p>
+          </div>
+        </div>
+        <p style={{ fontSize: "16px", color: "#28263B" }}>{project. description}</p>
       </div>
 
       <div style={{ marginTop: "15px", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#555", backgroundColor: getStatusColor(), padding: "6px 10px", borderRadius: "12px", width: "fit-content" }}>
