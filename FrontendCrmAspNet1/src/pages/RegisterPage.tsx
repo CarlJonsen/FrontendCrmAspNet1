@@ -1,4 +1,5 @@
 import RegisterForm from "../components/Auth/RegisterForm";
+import alphaLogo from '/src/assets/Logo.svg';
 
 const RegisterPage = () => {
   return (
@@ -14,7 +15,7 @@ const RegisterPage = () => {
         fontFamily: "'Comfortaa', sans-serif", 
         margin: 5 
         }}> 
-        <img src="src/assets/Logo.svg"/>
+        <img src={alphaLogo}/>
         alpha
       </h4>
       </div>
