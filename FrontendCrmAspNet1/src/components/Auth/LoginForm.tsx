@@ -19,6 +19,12 @@ const LoginForm = () => {
     setError("");
     setIsLoading(true);
 
+    if (formData.password.length < 6) {
+      setError("Lösenordet måste vara minst 6 tecken.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await apiClient.post("/auth/login", formData);
       const token = response.data.token;
