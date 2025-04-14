@@ -35,6 +35,11 @@ const RegisterForm = () => {
       setError("Lösenorden matchar inte!");
       return;
     }
+    if (formData.password.length < 6) {
+      setIsLoading(false);
+      setError("Lösenordet måste vara minst 6 tecken långt.");
+      return;
+    }
 
     if (!formData.termsAccepted) {
       setIsLoading(false);
@@ -61,31 +66,31 @@ const RegisterForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h3 className="text-center mb-5 title" style={{ fontSize: "2rem", marginTop: "-5px" }}>Create Account</h3>
+      <h3 className="text-center mb-5 subline" style={{ fontSize: "2rem", marginTop: "-5px" }}>Create Account</h3>
 
       <div className="mb-4">
         <label className="form-label subLine">First Name</label>
-        <input type="text" name="firstname" className="form-control rounded-4" value={formData.firstname} onChange={handleChange} required placeholder="Enter your first name"/>
+        <input type="text" name="firstname" className="form-control form-control-lg rounded-3" value={formData.firstname} onChange={handleChange} required placeholder="Enter your first name"/>
       </div>
 
       <div className="mb-4">
         <label className="form-label subLine">Last Name</label>
-        <input type="text" name="lastname" className="form-control rounded-4" value={formData.lastname} onChange={handleChange} required placeholder="Enter your last name"/>
+        <input type="text" name="lastname" className="form-control form-control-lg rounded-3" value={formData.lastname} onChange={handleChange} required placeholder="Enter your last name"/>
       </div>
 
       <div className="mb-4">
         <label className="form-label subLine">Email</label>
-        <input type="email" name="email" className="form-control rounded-4" value={formData.email} onChange={handleChange} required placeholder="Enter your email address"/>
+        <input type="email" name="email" className="form-control form-control-lg rounded-3" value={formData.email} onChange={handleChange} required placeholder="Enter your email address"/>
       </div>
 
       <div className="mb-4">
         <label className="form-label subLine">Password</label>
-        <input type="password" name="password" className="form-control rounded-4" value={formData.password} onChange={handleChange} required placeholder="Enter your password"/>
+        <input type="password" name="password" className="form-control form-control-lg rounded-3" value={formData.password} onChange={handleChange} required placeholder="Enter your password"/>
       </div>
 
       <div className="mb-4">
         <label className="form-label subLine">Confirm Password</label>
-        <input type="password" name="confirmPassword" className="form-control rounded-4" value={formData.confirmPassword} onChange={handleChange} required placeholder="Confirm your password"/>
+        <input type="password" name="confirmPassword" className="form-control form-control-lg rounded-3" value={formData.confirmPassword} onChange={handleChange} required placeholder="Confirm your password"/>
       </div>
 
       <div className="form-check mb-4">

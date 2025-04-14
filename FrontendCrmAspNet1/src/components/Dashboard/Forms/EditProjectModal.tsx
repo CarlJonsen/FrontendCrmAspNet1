@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Project } from "../../types/Project";
-import { fetchDropdownData } from "../../services/fetchDropdownData";
-import FormInput from "./shared/FormInput";
-import FormTextarea from "./shared/FormTextArea";
-import FormSelect from "./shared/FormSelect";
-import { updateProject } from "../../services/updateProject";
-import { uploadImage } from "../../services/uploadImage";
+import { Project } from "../../../types/Project";
+import { fetchDropdownData } from "../../../services/fetchDropdownData";
+import FormInput from "../shared/FormInput";
+import FormTextarea from "../shared/FormTextarea";
+import FormSelect from "../shared/FormSelect";
+import FormStatusSelect from "../shared/FormStatusSelect";
+import { updateProject } from "../../../services/updateProject";
+import { uploadImage } from "../../../services/uploadImage";
+import ImageUploader from "../shared/ImageUploader";
 
 interface Props {
   project: Project;
@@ -39,10 +41,15 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
     budget: 0,
     projectOwnerId: 0,
     clientId: 0,
+    isCompleted: false,
   });
 
   useEffect(() => {
-    const formatDate = (dateStr: string) => new Date(dateStr).toISOString().split("T")[0];
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return local.toISOString().split("T")[0];
+    };
     setFormData({
       projectName: project.projectName,
       description: project.description || "",
@@ -52,6 +59,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
       budget: project.budget,
       projectOwnerId: project.projectOwnerId,
       clientId: project.clientId,
+      isCompleted: project.isCompleted ?? false,
     });
   }, [project]);
 
@@ -68,15 +76,20 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
     loadDropdowns();
   }, []);
 
+ 
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: ["budget", "clientId", "projectOwnerId"].includes(name)
-        ? parseInt(value)
-        : value,
+      [name]:
+        name === "isCompleted"
+          ? value === "true"
+          : ["budget", "clientId", "projectOwnerId"].includes(name)
+          ? parseInt(value)
+          : value,
     }));
   };
 
@@ -96,7 +109,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
-
+  
     if (!formData.projectName) newErrors.projectName = "Project name is required.";
     if (!formData.description) newErrors.description = "Description is required.";
     if (!formData.imageUrl) newErrors.imageUrl = "Image URL is required.";
@@ -105,14 +118,21 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
     if (!formData.budget || formData.budget <= 0) newErrors.budget = "Budget must be greater than 0.";
     if (!formData.clientId) newErrors.clientId = "Client is required.";
     if (!formData.projectOwnerId) newErrors.projectOwnerId = "Project owner is required.";
-
+  
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-
+  
+    const updatedFormData = {
+      ...formData,
+      endDate: formData.isCompleted
+        ? new Date().toISOString().split("T")[0]
+        : formData.endDate,
+    };
+  
     try {
-      await updateProject(project.id, formData);
+      await updateProject(project.id, updatedFormData);
       alert("Projektet uppdaterades!");
       onProjectUpdated();
       onClose();
@@ -147,6 +167,17 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
         <h3 style={{ marginBottom: "20px" }}>Edit Project</h3>
 
         <form onSubmit={handleSubmit}>
+        <ImageUploader
+          imageUrl={formData.imageUrl}
+          onImageChange={handleImageUpload}
+        />
+        <FormInput
+            label="Image URL"
+            name="imageUrl"
+            value={formData.imageUrl}
+            onChange={handleChange}
+            error={errors.imageUrl}
+          />
           <FormInput
             label="Project Name"
             name="projectName"
@@ -154,40 +185,6 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
             onChange={handleChange}
             error={errors.projectName}
           />
-
-          <FormTextarea
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            error={errors.description}
-          />
-
-          <div className="mb-3">
-            <label>Upload New Image</label>
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-            {formData.imageUrl && (
-              <img
-                src={formData.imageUrl}
-                alt="Preview"
-                style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "8px", marginTop: "10px" }}
-              />
-            )}
-          </div>
-
-          <FormInput
-            label="Image URL"
-            name="imageUrl"
-            value={formData.imageUrl}
-            onChange={handleChange}
-            error={errors.imageUrl}
-          />
-
           <FormSelect
             label="Client"
             name="clientId"
@@ -200,20 +197,13 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
             placeholder="Select Client"
             error={errors.clientId}
           />
-
-          <FormSelect
-            label="Project Owner"
-            name="projectOwnerId"
-            value={formData.projectOwnerId}
+          <FormTextarea
+            label="Description"
+            name="description"
+            value={formData.description}
             onChange={handleChange}
-            options={users.map((user) => ({
-              value: user.id,
-              label: `${user.firstName} ${user.lastName}`
-            }))}
-            placeholder="Select Owner"
-            error={errors.projectOwnerId}
+            error={errors.description}
           />
-
           <div className="d-flex gap-3">
             <FormInput
               label="Start Date"
@@ -230,9 +220,21 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
               value={formData.endDate}
               onChange={handleChange}
               error={errors.endDate}
+              disabled={formData.isCompleted}
             />
           </div>
-
+          <FormSelect
+            label="Project Owner"
+            name="projectOwnerId"
+            value={formData.projectOwnerId}
+            onChange={handleChange}
+            options={users.map((user) => ({
+              value: user.id,
+              label: `${user.firstName} ${user.lastName}`
+            }))}
+            placeholder="Select Owner"
+            error={errors.projectOwnerId}
+          />
           <FormInput
             label="Budget"
             name="budget"
@@ -240,6 +242,12 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
             value={formData.budget}
             onChange={handleChange}
             error={errors.budget}
+          />
+          <FormStatusSelect
+            name="isCompleted"
+            value={formData.isCompleted}
+            onChange={handleChange}
+            error={errors.isCompleted}
           />
 
           <button type="submit" className="btn btn-primary w-100 mt-3">

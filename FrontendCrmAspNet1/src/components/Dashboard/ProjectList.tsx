@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ProjectCard from "./ProjectCard";
 import apiClient from "../../services/apiClient";
 import { Project } from "../../types/Project";
@@ -44,8 +44,8 @@ const ProjectList = ({ refreshTrigger, onProjectUpdated }: ProjectListProps) => 
           <h3 style={{ fontSize: "32px", fontWeight: 700, marginBottom: "30px", color: "#1A1926",}}>
             Projects
           </h3>
-          {/* Filter Buttons */}
           
+          {/* Filter Buttons */}
           <div style={{borderBottom: "1px solid #E3E5E8", marginBottom: "16px"}}>
           <div style={{ display: "flex", gap: "40px" }}>
             <button
@@ -61,7 +61,7 @@ const ProjectList = ({ refreshTrigger, onProjectUpdated }: ProjectListProps) => 
                 cursor: "pointer",
               }}
             >
-              ALL [{projects.length}]
+              ALL [{projects.filter(p => !p.isCompleted).length}]
             </button>
 
             <button

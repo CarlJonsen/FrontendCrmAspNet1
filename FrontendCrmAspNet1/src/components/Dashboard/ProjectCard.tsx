@@ -2,7 +2,7 @@ import { FaClock } from "react-icons/fa";
 import { Project } from "../../types/Project";
 import ProjectCardMenu from "./ProjectCardMenu";
 import { useState } from "react";
-import EditProjectModal from "./EditProjectModal";
+import EditProjectModal from "./Forms/EditProjectModal";
 import { deleteProject } from "../../services/deleteProject";
 
 

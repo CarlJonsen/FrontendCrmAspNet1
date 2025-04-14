@@ -7,6 +7,7 @@ interface Props {
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 const FormInput = ({ label, name, type = "text", value, onChange, error }: Props) => {

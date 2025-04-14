@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import DashboardLayout from '../components/Dashboard/DashboardLayout'
 import ProjectList from '../components/Dashboard/ProjectList'
-import AddProjectModal from '../components/Dashboard/AddProjectModal';
+import AddProjectModal from '../components/Dashboard/Forms/AddProjectModal';
 
 const DashboardPage = () => {
   const [showModal, setShowModal] = useState(false);

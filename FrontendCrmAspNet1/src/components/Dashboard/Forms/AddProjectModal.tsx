@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { fetchDropdownData } from "../../services/fetchDropdownData";
-import { createProject } from "../../services/createProject";
-import FormInput from "./shared/FormInput";
-import FormSelect from "./shared/FormSelect";
-import FormTextarea from "./shared/FormTextArea";
-import { uploadImage } from "../../services/uploadImage";
+import { fetchDropdownData } from "../../../services/fetchDropdownData";
+import { createProject } from "../../../services/createProject";
+import FormInput from "../shared/FormInput";
+import FormSelect from "../shared/FormSelect";
+import FormTextarea from "../shared/FormTextarea";
+import { uploadImage } from "../../../services/uploadImage";
+import ImageUploader from "../shared/ImageUploader";
 
 interface AddProjectModalProps {
   onClose: () => void;
@@ -27,7 +28,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  
   const [formData, setFormData] = useState({
     projectName: "",
     description: "",
@@ -38,6 +40,20 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
     projectOwnerId: 0,
     clientId: 0,
   });
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+  
+    if (!formData.projectName.trim()) newErrors.projectName = "Du måste ange projektnamn.";
+    if (!formData.description.trim()) newErrors.description = "Du måste skriva en beskrivning.";
+    if (!formData.startDate) newErrors.startDate = "Startdatum krävs.";
+    if (!formData.endDate) newErrors.endDate = "Slutdatum krävs.";
+    if (!formData.clientId) newErrors.clientId = "Du måste välja en klient.";
+    if (!formData.projectOwnerId) newErrors.projectOwnerId = "Du måste välja en projektägare.";
+    if (!formData.budget || formData.budget <= 0) newErrors.budget = "Budget måste vara större än 0.";
+  
+    return newErrors;
+  };
 
   useEffect(() => {
     const loadDropdowns = async () => {
@@ -55,10 +71,44 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImageFile(file); // ⬅️ vi laddar inte upp direkt längre
+    if (!file) return;
+  
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
+    const MAX_FILE_SIZE_MB = 5;
+  
+    console.log("File type:", file.type);
+    console.log("File name:", file.name);
+  
+    if (!allowedTypes.includes(file.type)) {
+      alert("Ogiltigt bildformat. Välj PNG, JPG, SVG eller WebP.");
+      return;
     }
-  }
+  
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      alert(`Filen är för stor (max ${MAX_FILE_SIZE_MB} MB).`);
+      return;
+    }
+  
+    const reader = new FileReader();
+  
+    reader.onloadend = () => {
+      const result = reader.result as string;
+  
+      if (!result.startsWith("data:image")) {
+        alert("Kunde inte läsa bilden korrekt. Försök med en annan fil.");
+        return;
+      }
+  
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: result,
+      }));
+  
+      setSelectedImageFile(file); // Glöm inte sätta filen för uppladdning
+    };
+  
+    reader.readAsDataURL(file);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -75,7 +125,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+
     try {
       let imageUrl = formData.imageUrl;
 
@@ -104,7 +160,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
         clientId: 0,
       });
   
-      setSelectedImageFile(null); // Glöm inte detta om du vill nollställa bildvalet
+      setSelectedImageFile(null);
       onProjectAdded();
       onClose();
     } catch (err) {
@@ -138,35 +194,24 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
         <h3 style={{ marginBottom: "20px" }}>Add Project</h3>
 
         <form onSubmit={handleSubmit}>
-          <FormInput
-            label="Project Name"
-            name="projectName"
-            value={formData.projectName}
-            onChange={handleChange}
-          />
+        <ImageUploader
+          imageUrl={formData.imageUrl}
+          onImageChange={handleImageUpload}
+        />
 
-          <FormTextarea
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-          />
-          <div className="mb-3">
-            <label>Upload Image</label>
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-          </div>
-          <FormInput
+        <FormInput
             label="Image URL"
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleChange}
           />
-
+          <FormInput
+            label="Project Name"
+            name="projectName"
+            value={formData.projectName}
+            onChange={handleChange}
+            error={errors.projectName}
+          />
           <FormSelect
             label="Client"
             name="clientId"
@@ -177,8 +222,33 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
               label: client.clientName
             }))}
             placeholder="Select Client"
+            error={errors.clientId}
           />
-
+          <FormTextarea
+            label="Description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            error={errors.description}
+          />
+          <div className="d-flex gap-3">
+            <FormInput
+              label="Start Date"
+              name="startDate"
+              type="date"
+              value={formData.startDate}
+              onChange={handleChange}
+              error={errors.startDate}
+            />
+            <FormInput
+              label="End Date"
+              name="endDate"
+              type="date"
+              value={formData.endDate}
+              onChange={handleChange}
+              error={errors.endDate}
+            />
+          </div>
           <FormSelect
             label="Project Owner"
             name="projectOwnerId"
@@ -189,31 +259,15 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
               label: `${user.firstName} ${user.lastName}`
             }))}
             placeholder="Select Owner"
+            error={errors.projectOwnerId}
           />
-
-          <div className="d-flex gap-3">
-            <FormInput
-              label="Start Date"
-              name="startDate"
-              type="date"
-              value={formData.startDate}
-              onChange={handleChange}
-            />
-            <FormInput
-              label="End Date"
-              name="endDate"
-              type="date"
-              value={formData.endDate}
-              onChange={handleChange}
-            />
-          </div>
-
           <FormInput
             label="Budget"
             name="budget"
             type="number"
             value={formData.budget}
             onChange={handleChange}
+            error={errors.budget}
           />
 
           <button type="submit" className="btn btn-primary w-100 mt-3">
