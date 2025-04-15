@@ -112,7 +112,6 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
   
     if (!formData.projectName) newErrors.projectName = "Project name is required.";
     if (!formData.description) newErrors.description = "Description is required.";
-    if (!formData.imageUrl) newErrors.imageUrl = "Image URL is required.";
     if (!formData.startDate) newErrors.startDate = "Start date is required.";
     if (!formData.endDate) newErrors.endDate = "End date is required.";
     if (!formData.budget || formData.budget <= 0) newErrors.budget = "Budget must be greater than 0.";
@@ -176,7 +175,6 @@ const EditProjectModal = ({ project, isOpen, onClose, onProjectUpdated }: Props)
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleChange}
-            error={errors.imageUrl}
           />
           <FormInput
             label="Project Name"
