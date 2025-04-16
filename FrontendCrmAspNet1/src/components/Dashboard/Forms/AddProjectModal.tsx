@@ -104,7 +104,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectAdded }: AddProjectModalPro
         imageUrl: result,
       }));
   
-      setSelectedImageFile(file); // Glöm inte sätta filen för uppladdning
+      setSelectedImageFile(file);
     };
   
     reader.readAsDataURL(file);

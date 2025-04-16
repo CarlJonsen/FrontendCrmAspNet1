@@ -42,15 +42,15 @@ const ProjectCard = ({ project, onProjectUpdated, onProjectDeleted}: {
   };
 
   const getStatusColor = () => {
-    if (project.isCompleted) return "#d4edda";         // Grön
+    if (project.isCompleted) return "#d4edda";         
     const today = new Date();
     const end = new Date(project.endDate);
     const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
-    if (diffDays <= 2) return "#f8d7da";       // Röd
-    if (diffDays <= 6) return "#fff3cd";       // Gul
+    if (diffDays <= 2) return "#f8d7da";       
+    if (diffDays <= 6) return "#fff3cd";       
   
-    return "#f2f2f2";                          // Neutral grå
+    return "#f2f2f2";                          
   };
   
   return (

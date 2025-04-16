@@ -10,6 +10,5 @@ export const uploadImage = async (file: File): Promise<string> => {
       },
     });
   
-    // 👇 Returnera bara strängen
     return response.data.imageUrl;
   };
